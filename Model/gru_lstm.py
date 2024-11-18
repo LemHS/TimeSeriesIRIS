@@ -245,7 +245,8 @@ class BuildGRULSTM(keras_tuner.HyperModel):
         predictions = []
 
         # Hyperparameters
-        gru_lstm_units = hp.Int('gru_units', min_value=64, max_value=256, step=32)
+        gru_units = hp.Int('gru_units', min_value=64, max_value=256, step=32)
+        gru_lstm_units = hp.Int('gru_lstm_units', min_value=64, max_value=256, step=32)
         dense_units = hp.Int('dense_units', min_value=16, max_value=64, step=16)
         dropout_rate = hp.Float('dropout_rate', min_value=0.01, max_value=0.5, step=0.01)
         learning_rate = hp.Float('learning_rate', min_value=1e-5, max_value=1e-2, sampling='log')
@@ -254,7 +255,7 @@ class BuildGRULSTM(keras_tuner.HyperModel):
         input_ts = Input(shape=(self.train_x.shape[1], self.train_x.shape[2]))
 
         # GRU Layer
-        gru = GRU(gru_lstm_units, return_sequences=True, kernel_regularizer=tf.keras.regularizers.l2(0.01))(input_ts)
+        gru = GRU(gru_units, return_sequences=True, kernel_regularizer=tf.keras.regularizers.l2(0.01))(input_ts)
         # gru, state = GRU(gru_lstm_units, return_state=True, kernel_regularizer=tf.keras.regularizers.l2(0.01))(input_ts)
         dropout_1 = Dropout(dropout_rate)(gru)
 

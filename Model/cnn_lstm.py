@@ -183,7 +183,8 @@ class BuildCNNLSTM(keras_tuner.HyperModel):
         """
         # Hyperparameters
         conv_filters = hp.Int('conv_filters', min_value=32, max_value=128, step=32)
-        lstm_units = hp.Int('lstm_units', min_value=64, max_value=256, step=32)
+        lstm_units_1 = hp.Int('lstm_units_1', min_value=64, max_value=256, step=32)
+        lstm_units_2 = hp.Int('lstm_units_2', min_value=64, max_value=256, step=32)
         dense_units = hp.Int('dense_units', min_value=16, max_value=64, step=16)
         dropout_rate = hp.Float('dropout_rate', min_value=0.01, max_value=0.5, step=0.01)
         learning_rate = hp.Float('learning_rate', min_value=1e-5, max_value=1e-2, sampling='log')
@@ -197,11 +198,11 @@ class BuildCNNLSTM(keras_tuner.HyperModel):
         dropout_1 = Dropout(dropout_rate)(cnn_2)
 
         # LSTM Layers
-        lstm_1 = LSTM(lstm_units, return_sequences=True, kernel_regularizer=tf.keras.regularizers.l2(0.01))(dropout_1)
+        lstm_1 = LSTM(lstm_units_1, return_sequences=True, kernel_regularizer=tf.keras.regularizers.l2(0.01))(dropout_1)
         dropout_2 = Dropout(dropout_rate)(lstm_1)
 
         # Final RNN and Dense Layers
-        x, *state = RNN(LSTMCell(lstm_units // 2), return_state=True)(dropout_2)
+        x, *state = RNN(LSTMCell(lstm_units_2), return_state=True)(dropout_2)
         x = Dense(dense_units, activation="relu")(x)
         prediction = Dense(3)(x)
 
@@ -239,7 +240,7 @@ class BuildCNNLSTM(keras_tuner.HyperModel):
         seq2seq_model.add(Conv1D(filters=conv_filters, kernel_size=3, activation='relu'))
         seq2seq_model.add(Dropout(dropout_rate))
         seq2seq_model.add(LSTM(lstm_units_1, activation='relu', return_sequences=True))
-        seq2seq_model.add(LSTM(lstm_units_1, activation='relu'))
+        seq2seq_model.add(LSTM(lstm_units_2, activation='relu'))
         seq2seq_model.add(RepeatVector(n_steps_out))
         seq2seq_model.add(LSTM(lstm_units_2, activation='relu', return_sequences=True))
         seq2seq_model.add(TimeDistributed(Dense(1)))
@@ -261,7 +262,8 @@ class BuildCNNLSTM(keras_tuner.HyperModel):
 
         # Hyperparameters
         conv_filters = hp.Int('conv_filters', min_value=32, max_value=128, step=32)
-        lstm_units = hp.Int('lstm_units', min_value=64, max_value=256, step=32)
+        lstm_units_1 = hp.Int('lstm_units_1', min_value=64, max_value=256, step=32)
+        lstm_units_2 = hp.Int('lstm_units_2', min_value=64, max_value=256, step=32)
         dense_units = hp.Int('dense_units', min_value=16, max_value=64, step=16)
         dropout_rate = hp.Float('dropout_rate', min_value=0.01, max_value=0.5, step=0.01)
         learning_rate = hp.Float('learning_rate', min_value=1e-5, max_value=1e-2, sampling='log')
@@ -275,11 +277,11 @@ class BuildCNNLSTM(keras_tuner.HyperModel):
         dropout_1 = Dropout(dropout_rate)(cnn_2)
 
         # LSTM Layer
-        lstm_1 = LSTM(lstm_units, return_sequences=True, kernel_regularizer=tf.keras.regularizers.l2(0.01))(dropout_1)
+        lstm_1 = LSTM(lstm_units_1, return_sequences=True, kernel_regularizer=tf.keras.regularizers.l2(0.01))(dropout_1)
         # lstm_1, *state = LSTM(lstm_units, return_state=True, kernel_regularizer=tf.keras.regularizers.l2(0.01))(dropout_1)
         dropout_2 = Dropout(dropout_rate)(lstm_1)
 
-        x, *state = RNN(LSTMCell(lstm_units), return_state=True)(dropout_2)
+        x, *state = RNN(LSTMCell(lstm_units_2), return_state=True)(dropout_2)
 
         # Dense Layers
         dense_1 = Dense(dense_units, activation="relu")
@@ -292,7 +294,7 @@ class BuildCNNLSTM(keras_tuner.HyperModel):
         predictions.append(prediction)
 
         # Autoregressive Loop
-        lstm_cell = LSTMCell(lstm_units)
+        lstm_cell = LSTMCell(lstm_units_2)
         for n in range(1, 3):
             x = prediction
             x, state = lstm_cell(x, states=state)
