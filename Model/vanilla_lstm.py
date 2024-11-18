@@ -172,17 +172,18 @@ class BuildVanillaLSTM(keras_tuner.HyperModel):
         Create a Single Shot Multi-step LSTM Model with tunable hyperparameters using Keras Tuner.
         """
         # Define hyperparameters
-        lstm_units = hp.Int('lstm_units', min_value=32, max_value=256, step=32)
+        lstm_units_1 = hp.Int('lstm_units_1', min_value=64, max_value=256, step=32)
+        lstm_units_2 = hp.Int('lstm_units_2', min_value=64, max_value=256, step=32)
         dense_units = hp.Int('dense_units', min_value=16, max_value=64, step=16)
         dropout_rate = hp.Float('dropout_rate', min_value=0.01, max_value=0.5, step=0.01)
         learning_rate = hp.Float('learning_rate', min_value=1e-5, max_value=1e-2, sampling='log')
 
         # Model architecture
         input_ts = Input(shape=(self.train_x.shape[1], self.train_x.shape[2]))
-        lstm_1 = LSTM(lstm_units, return_sequences=True, kernel_regularizer=tf.keras.regularizers.l2(0.01))(input_ts)
+        lstm_1 = LSTM(lstm_units_1, return_sequences=True, kernel_regularizer=tf.keras.regularizers.l2(0.01))(input_ts)
         dropout_1 = Dropout(dropout_rate)(lstm_1)
 
-        x, *state = RNN(LSTMCell(lstm_units // 2), return_state=True)(dropout_1)
+        x, *state = RNN(LSTMCell(lstm_units_2), return_state=True)(dropout_1)
 
         x = Dense(dense_units, activation='relu')(x)
         prediction = Dense(3)(x)
@@ -206,15 +207,16 @@ class BuildVanillaLSTM(keras_tuner.HyperModel):
         n_features = self.train_x.shape[2]
 
         # Define hyperparameters
-        lstm_units = hp.Int('lstm_units', min_value=64, max_value=256, step=32)
+        lstm_units_1 = hp.Int('lstm_units_1', min_value=64, max_value=256, step=32)
+        lstm_units_2 = hp.Int('lstm_units_2', min_value=64, max_value=256, step=32)
         learning_rate = hp.Float('learning_rate', min_value=1e-5, max_value=1e-2, sampling='log')
 
         # Model architecture
         seq2seq_model = Sequential()
-        seq2seq_model.add(LSTM(lstm_units, activation='relu', return_sequences=True, input_shape=(n_steps_in, n_features)))
-        seq2seq_model.add(LSTM(lstm_units, activation='relu'))
+        seq2seq_model.add(LSTM(lstm_units_1, activation='relu', return_sequences=True, input_shape=(n_steps_in, n_features)))
+        seq2seq_model.add(LSTM(lstm_units_2, activation='relu'))
         seq2seq_model.add(RepeatVector(n_steps_out))
-        seq2seq_model.add(LSTM(lstm_units, activation='relu', return_sequences=True))
+        seq2seq_model.add(LSTM(lstm_units_2, activation='relu', return_sequences=True))
         seq2seq_model.add(TimeDistributed(Dense(1)))
 
         # Compile the model
@@ -233,7 +235,8 @@ class BuildVanillaLSTM(keras_tuner.HyperModel):
         predictions = []
 
         # Hyperparameters
-        lstm_units = hp.Int('lstm_units', min_value=64, max_value=256, step=32)
+        lstm_units_1 = hp.Int('lstm_units_1', min_value=64, max_value=256, step=32)
+        lstm_units_2 = hp.Int('lstm_units_2', min_value=64, max_value=256, step=32)
         dense_units = hp.Int('dense_units', min_value=16, max_value=64, step=16)
         dropout_rate = hp.Float('dropout_rate', min_value=0.01, max_value=0.5, step=0.01)
         learning_rate = hp.Float('learning_rate', min_value=1e-5, max_value=1e-2, sampling='log')
@@ -242,14 +245,14 @@ class BuildVanillaLSTM(keras_tuner.HyperModel):
         input_ts = Input(shape=(self.train_x.shape[1], self.train_x.shape[2]))
 
         # Initial LSTM Layer
-        lstm_1 = LSTM(lstm_units, return_sequences=True, kernel_regularizer=tf.keras.regularizers.l2(0.01))(input_ts)
+        lstm_1 = LSTM(lstm_units_1, return_sequences=True, kernel_regularizer=tf.keras.regularizers.l2(0.01))(input_ts)
         # lstm_1, *state = LSTM(lstm_units, return_state=True, kernel_regularizer=tf.keras.regularizers.l2(0.01))(input_ts)
         dropout_1 = Dropout(dropout_rate)(lstm_1)
 
-        x, *state = RNN(LSTMCell(lstm_units), return_state=True)(dropout_1)
+        x, *state = RNN(LSTMCell(lstm_units_2), return_state=True)(dropout_1)
 
         # Define LSTM Cell and Dense layers
-        lstm_cell = LSTMCell(lstm_units)
+        lstm_cell = LSTMCell(lstm_units_2)
         dense_1 = Dense(dense_units, activation='relu')
         dense_2 = Dense(1)
 

@@ -166,7 +166,8 @@ class BuildBiLSTM(keras_tuner.HyperModel):
         Build a tunable Single Shot Bidirectional LSTM Model.
         """
         # Hyperparameters
-        lstm_units = hp.Int('lstm_units', min_value=64, max_value=256, step=32)
+        lstm_units_1 = hp.Int('lstm_units_1', min_value=64, max_value=256, step=32)
+        lstm_units_2 = hp.Int('lstm_units_2', min_value=64, max_value=256, step=32)
         dense_units = hp.Int('dense_units', min_value=16, max_value=64, step=16)
         dropout_rate = hp.Float('dropout_rate', min_value=0.01, max_value=0.5, step=0.01)
         learning_rate = hp.Float('learning_rate', min_value=1e-5, max_value=1e-2, sampling='log')
@@ -176,13 +177,13 @@ class BuildBiLSTM(keras_tuner.HyperModel):
 
         # Bidirectional LSTM Layer
         lstm_1 = Bidirectional(
-            LSTM(lstm_units, return_sequences=True, kernel_regularizer=tf.keras.regularizers.l2(0.01))
+            LSTM(lstm_units_1, return_sequences=True, kernel_regularizer=tf.keras.regularizers.l2(0.01))
         )(input_ts)
         dropout_1 = Dropout(dropout_rate)(lstm_1)
 
         # Second Bidirectional LSTM Layer
         x, *state = Bidirectional(
-            RNN(LSTMCell(lstm_units // 2), return_state=True)
+            RNN(LSTMCell(lstm_units_2), return_state=True)
         )(dropout_1)
 
         # Dense Layers
@@ -218,7 +219,7 @@ class BuildBiLSTM(keras_tuner.HyperModel):
         # Model definition
         seq2seq_model = Sequential()
         seq2seq_model.add(Bidirectional(LSTM(lstm_units_1, activation='relu', return_sequences=True, input_shape=(n_steps_in, n_features))))
-        seq2seq_model.add(Bidirectional(LSTM(lstm_units_1, activation='relu')))
+        seq2seq_model.add(Bidirectional(LSTM(lstm_units_2, activation='relu')))
         seq2seq_model.add(RepeatVector(n_steps_out))
         seq2seq_model.add(Bidirectional(LSTM(lstm_units_2, activation='relu', return_sequences=True)))
         seq2seq_model.add(TimeDistributed(Dense(1)))
@@ -239,7 +240,8 @@ class BuildBiLSTM(keras_tuner.HyperModel):
         predictions = []
 
         # Hyperparameters
-        lstm_units = hp.Int('lstm_units', min_value=64, max_value=256, step=32)
+        lstm_units_1 = hp.Int('lstm_units_1', min_value=64, max_value=256, step=32)
+        lstm_units_2 = hp.Int('lstm_units_2', min_value=64, max_value=256, step=32)
         dense_units = hp.Int('dense_units', min_value=16, max_value=64, step=16)
         dropout_rate = hp.Float('dropout_rate', min_value=0.01, max_value=0.5, step=0.01)
         learning_rate = hp.Float('learning_rate', min_value=1e-5, max_value=1e-2, sampling='log')
@@ -249,12 +251,12 @@ class BuildBiLSTM(keras_tuner.HyperModel):
 
         # Bidirectional LSTM Layer
         lstm_1 = Bidirectional(
-            LSTM(lstm_units, return_sequences=True, kernel_regularizer=tf.keras.regularizers.l2(0.01))
+            LSTM(lstm_units_1, return_sequences=True, kernel_regularizer=tf.keras.regularizers.l2(0.01))
         )(input_ts)
         dropout_1 = Dropout(dropout_rate)(lstm_1)
 
         # Autoregressive LSTM Cell and Dense Layers
-        x, *state = Bidirectional(RNN(LSTMCell(lstm_units), return_state=True))(dropout_1)
+        x, *state = Bidirectional(RNN(LSTMCell(lstm_units_2), return_state=True))(dropout_1)
         x = Dense(dense_units, activation='relu')(x)
         prediction = Dense(1)(x)
 
@@ -263,7 +265,7 @@ class BuildBiLSTM(keras_tuner.HyperModel):
         # Autoregressive Predictions Loop
         for n in range(1, 3):
             x = prediction
-            x, state = LSTMCell(lstm_units)(x, states=state)
+            x, state = LSTMCell(lstm_units_2)(x, states=state)
             x = Dense(dense_units, activation='relu')(x)
             prediction = Dense(1)(x)
             predictions.append(prediction)

@@ -25,7 +25,7 @@ def retrieve_datetime(ticker, end_date):
   data['year_sin'] = np.sin(timestamp_s * (2 * np.pi / year))
   data['year_cos'] = np.cos(timestamp_s * (2 * np.pi / year))
 
-  return data[["Date", "Adj Close", "Close", "Volume", "year_sin", "year_cos"]]
+  return data[["Date", "Close", "year_sin", "year_cos"]]
 
 def create_train(data, train_size, past_years = "all"):
   """
