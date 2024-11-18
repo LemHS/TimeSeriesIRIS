@@ -1,0 +1,1 @@
+{"conv_filters": 96, "lstm_units": 96, "dense_units": 48, "dropout_rate": 0.12, "learning_rate": 2.571508654613967e-05, "batch_size": 16}
