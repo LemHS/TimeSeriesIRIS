@@ -138,14 +138,15 @@ def hypertune(ticker, val_size, test_size, end_date, model, type):
     train_x, val_x, test_x, train_y, val_y, test_y, train_exog, val_exog, test_exog = dataset.create_windowed_data(train, val, test)
     model = model(train_x, val_x, train_y, val_y, type)
     lr_scheduler = tf.keras.callbacks.LearningRateScheduler(lambda x: 1e-4 * math.exp(-0.1 * x))
-    early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
     path = f"trials/{model.name}/Hypertune{type}{model.name}"
     n_trial = len(os.listdir(path)) + 1
     tuner = keras_tuner.RandomSearch(
         hypermodel = model,
         objective = keras_tuner.Objective("val_root_mean_squared_error", direction="min"),
         overwrite=True,
-        directory=f"{path}/{n_trial}"
+        directory=f"{path}/{n_trial}",
+        max_trials=100
     )
 
     os.makedirs(f"{path}/{n_trial}/metrics")
