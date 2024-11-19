@@ -1,8 +1,6 @@
 name: Train Single Shot VanillaLSTM
 
-on:
-  schedule:
-    - cron: '0 */2 * * *'
+on: workflow_dispatch
 
 jobs:
   build:
