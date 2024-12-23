@@ -160,6 +160,9 @@ def hypertune(ticker, val_size, test_size, end_date, model, type):
     with open(f"{path}/{n_trial}/best_hp.json", "w") as file:
        json.dump(best_hp, file)
 
+    with open(f"{path}/{n_trial}/best_trial.txt", "w") as file:
+       file.write(f"Best trial: {tuner.oracle.get_best_trials()[0].trial_id}")
+
     pred, actual = evaluate_model(best_model, test_x, test_exog, test_y, scaler_y, test_date, f"{path}/{n_trial}/metrics/metrics.csv", exog = False)
 
     return best_model, tuner, pred, actual, test_date
